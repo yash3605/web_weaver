@@ -14,7 +14,7 @@ fn append_to_file(path: String, content: &str) -> io::Result<()> {
 
 pub fn saving_to_file(curr_url: Url, response: &str) -> io::Result<()> {
     if let Err(e) = fs::create_dir_all("crawled") {
-        eprintln!("Error creating directory: {}", e);
+        tracing::error!("Error creating directory: {}", e);
     }
 
     let url = curr_url.path();
@@ -26,8 +26,8 @@ pub fn saving_to_file(curr_url: Url, response: &str) -> io::Result<()> {
     let file_state = append_to_file(path, response);
 
     match file_state {
-        Ok(_) => println!("File Written Successfully"),
-        Err(_) => println!("Error writing File"),
+        Ok(_) => tracing::info!("File Written Successfully"),
+        Err(_) => tracing::info!("Error writing File"),
     };
 
     Ok(())
