@@ -1,12 +1,15 @@
 mod cli;
 mod crawler;
+mod db;
 mod storage;
 use crate::cli::Args;
 use crate::crawler::fetch_and_parse;
 use clap::Parser;
 use governor::{Quota, RateLimiter};
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use std::collections::{HashSet, VecDeque};
 use std::num::NonZeroU32;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use tokio::sync::Semaphore;
 use url::Url;
@@ -25,12 +28,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )));
     let semaphore = Arc::new(Semaphore::new(args.concurrent_parse as usize));
 
+    let options = SqliteConnectOptions::from_str("sqlite://crawled.db")?.create_if_missing(true);
+
+    let pool = SqlitePoolOptions::new().connect_with(options).await?;
+    db::create_table(pool.clone()).await?;
+
     if let Err(e) = fetch_and_parse(
         url,
         visited_url,
         url_to_fetch,
         global_rate_limiter,
         semaphore,
+        pool,
     )
     .await
     {
