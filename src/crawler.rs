@@ -113,7 +113,7 @@ pub async fn fetch_and_parse(
                     let title = fragment
                         .select(&Selector::parse("title").unwrap())
                         .next()
-                        .map(|el| el.text().collect::<String>());
+                        .map(|el| el.text().collect::<String>().trim().to_string());
                     let keywords = fragment
                         .select(&Selector::parse("meta[name='keywords']").unwrap())
                         .next()
@@ -166,7 +166,11 @@ pub async fn fetch_and_parse(
                         db::insert_page(&pool, url.as_str(), title, description, keywords, resp)
                             .await;
                     if let Err(e) = insert_page {
-                        tracing::error!("Error inserting into DB: {}", e)
+                        if e.to_string().contains("UNIQUE constraint failed") {
+                            tracing::debug!("URL already in DB, skipping: {}", url);
+                        } else {
+                            tracing::error!("Error inserting into DB: {}", e);
+                        }
                     };
                     visited_url.lock().unwrap().insert(url);
                 }
