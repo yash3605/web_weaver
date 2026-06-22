@@ -117,19 +117,6 @@ Security considerations
 - Fetching arbitrary URLs can be dangerous. Do not run the crawler on untrusted networks or on systems where fetching malicious content could cause harm.
 - The program does not sanitize or execute page content — it merely stores and indexes raw HTML. Be careful when opening stored files locally.
 
-Known issues & limitations
-- ORDER BY rank in the search SQL may fail at runtime because `rank` is not a default FTS5 column. Use bm25(...) or another ranking expression.
-- No persistent frontier; crawling large sites may consume large memory for in-memory frontier/visited sets.
-- No depth limit or politeness beyond the single global rate limiter and robots.txt check.
-- The crawler only follows `<a href>` links and only honors the HTML `href` attribute; it does not process JavaScript-driven links or other resource types.
-- The reqwest dependency enables the `blocking` feature in Cargo.toml despite the code using async requests. This is not harmful but unnecessary — the blocking feature can be removed.
-
-Suggested improvements
-1. Add per-host rate limiting and politeness delays.
-2. Persist frontier and visited sets to resume large crawls.
-3. Improve link normalization and canonicalization to avoid duplicates.
-4. Add optional depth limits, max-pages limit and more robust error/retry/backoff policies.
-5. Add tests and CI to ensure DB creation, crawling and searching behaviour remain stable.
 
 Contributing
 - Fork the repository and open a pull request for changes.
